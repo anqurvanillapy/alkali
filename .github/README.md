@@ -1,6 +1,6 @@
 # ☯️ 大 盗 治 碱
 
-My randumb snippets in Go programming language, mostly covering:
+My randumb snippets in Go programming language, mostly cover:
 
 * Compiler internals, [someone] said Go SSA is good to be a core language
 * Scheduling, e.g. goroutines

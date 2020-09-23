@@ -13,3 +13,5 @@ $ env GOSSAFUNC=main go build main.go
 ```bash
 $ go build -gcflags -S main.go
 ```
+
+(The `gc` here means *Go compiler*, that's really some masterpiece of wording)

@@ -1,21 +1,21 @@
-package sql_test
+package like_test
 
 import (
 	"testing"
 
-	"github.com/anqurvanillapy/alkali/sql"
+	"github.com/anqurvanillapy/alkali/sql/like"
 )
 
 func TestWildcardSurround(t *testing.T) {
 	var val string
 
 	val = "%"
-	if sql.WildcardSurround(val) != "%\\%%" {
+	if like.WildcardSurround(val) != "%\\%%" {
 		t.Fatal(val)
 	}
 
 	val = "_"
-	if sql.WildcardSurround(val) != "%\\_%" {
+	if like.WildcardSurround(val) != "%\\_%" {
 		t.Fatal(val)
 	}
 

@@ -21,12 +21,9 @@ type (
 
 	locker struct {
 		total, ready uint32
-
-		runCtx context.Context
-		onRun  context.CancelFunc
-
-		finishCtx context.Context
-		onFinish  context.CancelFunc
+		runCh        chan struct{}
+		finishCtx    context.Context
+		onFinish     context.CancelFunc
 	}
 )
 
@@ -38,7 +35,7 @@ func NewPool(poolSize, queueSize int) Pool {
 		go func() {
 			for l := range q {
 				if atomic.AddUint32(&l.ready, 1) == l.total {
-					l.onRun()
+					l.runCh <- struct{}{}
 				}
 				<-l.finishCtx.Done()
 			}
@@ -49,10 +46,8 @@ func NewPool(poolSize, queueSize int) Pool {
 
 func (p *lockPool) New(ids ...uint64) sync.Locker {
 	finishCtx, onFinish := context.WithCancel(context.Background())
-	runCtx, onRun := context.WithCancel(context.Background())
 	l := &locker{
-		runCtx:    runCtx,
-		onRun:     onRun,
+		runCh:     make(chan struct{}),
 		finishCtx: finishCtx,
 		onFinish:  onFinish,
 	}
@@ -79,5 +74,5 @@ func (p *lockPool) New(ids ...uint64) sync.Locker {
 	return l
 }
 
-func (l *locker) Lock()   { <-l.runCtx.Done() }
+func (l *locker) Lock()   { <-l.runCh }
 func (l *locker) Unlock() { l.onFinish() }

@@ -51,10 +51,10 @@ func ExampleNewPool() {
 	l4 := p.New(3, 4)
 
 	// Concurrently run the tasks.
-	go op1(l1) // no one locks it
-	go op2(l2)
-	go op3(l3) // waits for op2
 	go op4(l4) // op2 wakes up op3, not op4
+	go op3(l3) // waits for op2
+	go op2(l2)
+	go op1(l1) // no one locks it
 
 	wg.Wait()
 

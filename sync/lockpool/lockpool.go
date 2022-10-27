@@ -1,7 +1,6 @@
 package lockpool
 
 import (
-	"context"
 	"sync"
 	"sync/atomic"
 )
@@ -18,12 +17,9 @@ type (
 		poolSize int
 		slots    lockSlots
 	}
-
 	locker struct {
-		total, ready uint32
-		runCh        chan struct{}
-		finishCtx    context.Context
-		onFinish     context.CancelFunc
+		total, ready    uint32
+		runCh, finishCh chan struct{}
 	}
 )
 
@@ -37,7 +33,7 @@ func NewPool(poolSize, queueSize int) Pool {
 				if atomic.AddUint32(&l.ready, 1) == l.total {
 					l.runCh <- struct{}{}
 				}
-				<-l.finishCtx.Done()
+				<-l.finishCh
 			}
 		}()
 	}
@@ -45,12 +41,7 @@ func NewPool(poolSize, queueSize int) Pool {
 }
 
 func (p *lockPool) New(ids ...uint64) sync.Locker {
-	finishCtx, onFinish := context.WithCancel(context.Background())
-	l := &locker{
-		runCh:     make(chan struct{}),
-		finishCtx: finishCtx,
-		onFinish:  onFinish,
-	}
+	l := &locker{runCh: make(chan struct{}), finishCh: make(chan struct{})}
 
 	var (
 		slots   []int
@@ -75,4 +66,4 @@ func (p *lockPool) New(ids ...uint64) sync.Locker {
 }
 
 func (l *locker) Lock()   { <-l.runCh }
-func (l *locker) Unlock() { l.onFinish() }
+func (l *locker) Unlock() { close(l.finishCh) }
